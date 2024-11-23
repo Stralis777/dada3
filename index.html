@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tap Game Deluxe</title>
+    <style>
+        /* Общий стиль страницы */
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            color: #fff;
+            background: linear-gradient(45deg, #1e3c72, #2a5298);
+            background-size: cover;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Каркас игры */
+        #game-container {
+            width: 90%;
+            max-width: 600px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        h1, h2, h3 {
+            text-align: center;
+        }
+
+        h1 {
+            color: #ffd700;
+            text-shadow: 0 0 10px #ffd700;
+        }
+
+        h3 {
+            margin-bottom: 10px;
+        }
+
+        /* Кнопка для тапов */
+        .tap-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 20px 0;
+            font-size: 24px;
+            color: #fff;
+            background: linear-gradient(45deg, #00c853, #1de9b6);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .tap-button:hover {
+            background: linear-gradient(45deg, #1de9b6, #00c853);
+            transform: scale(1.05);
+        }
+
+        /* Разделы игры */
+        .section {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #fff;
+            border-radius: 10px;
+        }
+
+        .section h3 {
+            color: #1de9b6;
+        }
+
+        .section p, .section li {
+            color: #eee;
+        }
+
+        /* Лидерборд */
+        #leaderboard {
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+
+        #leaderboard ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        #leaderboard li {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 10px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        #leaderboard li.gold { background: linear-gradient(45deg, #ffd700, #ffdd54); }
+        #leaderboard li.silver { background: linear-gradient(45deg, #c0c0c0, #d6d6d6); }
+        #leaderboard li.bronze { background: linear-gradient(45deg, #cd7f32, #d9a05b); }
+
+        /* Реферальный раздел */
+        .referral-section {
+            text-align: center;
+        }
+
+        .referral-link {
+            color: #00e5ff;
+            text-decoration: underline;
+        }
+
+        /* Раздел с заданиями */
+        #tasks {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        #tasks ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        #tasks li {
+            padding: 5px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        #tasks li.completed {
+            background: rgba(0, 255, 0, 0.2);
+            text-decoration: line-through;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>Tap Game Deluxe</h1>
+        <h3>Твой уровень: <span id="level">1</span> | Очки: <span id="points">0</span></h3>
+        <h3>Рефералы: <span id="referrals">0</span></h3>
+
+        <button class="tap-button" id="tap-button">Тапни!</button>
+
+        <!-- Буст -->
+        <div class="section">
+            <h3>Ежедневный Буст</h3>
+            <button class="tap-button" id="boost-button">Активировать x2</button>
+            <p id="boost-timer"></p>
+        </div>
+
+        <!-- Лидерборд -->
+        <div class="section">
+            <h3>Лидерборд</h3>
+            <div id="leaderboard">
+                <ul id="leaderboard-list">
+                    <!-- Пример: -->
+                    <li class="gold"><span>Игрок1</span> <span>1000</span></li>
+                    <li class="silver"><span>Игрок2</span> <span>900</span></li>
+                    <li class="bronze"><span>Игрок3</span> <span>800</span></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Рефералы -->
+        <div class="section referral-section">
+            <h3>Твоя реферальная ссылка:</h3>
+            <p id="referral-link">https://example.com?ref=USER_ID</p>
+        </div>
+
+        <!-- Задания -->
+        <div class="section">
+            <h3>Задания</h3>
+            <div id="tasks">
+                <ul id="tasks-list">
+                    <!-- Пример задания -->
+                    <li>Подпишись на канал 1 <button>Выполнить</button></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let points = 0;
+        let level = 1;
+        let referrals = 0;
+        const pointsPerTap = 1;
+        const levelThreshold = 100;
+
+        const tapButton = document.getElementById("tap-button");
+        const pointsElement = document.getElementById("points");
+        const levelElement = document.getElementById("level");
+        const referralsElement = document.getElementById("referrals");
+
+        // Функция тап
+        tapButton.addEventListener("click", () => {
+            points += pointsPerTap;
+            pointsElement.textContent = points;
+
+            // Проверка уровня
+            if (points >= level * levelThreshold) {
+                level++;
+                levelElement.textContent = level;
+            }
+        });
+
+        // Пример буста
+        const boostButton = document.getElementById("boost-button");
+        boostButton.addEventListener("click", () => {
+            // Бонусы на 24 часа
+        });
+
+        // Реферальная система
+        const referralLink = document.getElementById("referral-link");
+        referralLink.textContent = `https://example.com?ref=USER_ID`;
+    </script>
+</body>
+</html>
